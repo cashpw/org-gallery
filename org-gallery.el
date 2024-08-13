@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: Symbol’s value as variable is void: finder-known-keywords
 ;; Homepage: https://github.com/cashweaver/org-gallery
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -28,13 +28,25 @@
 ;;
 ;;; Code:
 
-(require 'org-extras)
+(require 'cl-lib)
 
 (defgroup org-gallery nil
   "Options related to `org-gallery'."
   :group 'org
   :tag "Options in org-gallery"
   :link '(url-link :tag "Github" "https://github.com/cashpw/org-gallery"))
+
+(defun org-gallery-get-content-under-heading (&optional pos)
+  "Return immediate content of heading at point or (optionally) POS."
+  (save-excursion
+    (when pos
+      (goto-char pos))
+    (org-back-to-heading)
+    (forward-line)
+    (unless (= (point) (point-max))
+      (let ((start (point))
+            (end (or (outline-next-heading) (point-max))))
+        (buffer-substring-no-properties start end)))))
 
 (defcustom org-gallery--tag "gallery"
   "Tag to designate a gallery."
@@ -59,7 +71,7 @@
 
 (defun org-gallery--get-description ()
   "Get description of gallery or image at point."
-  (string-trim (or (org-extras-get-content-under-heading) "")))
+  (string-trim (or (org-gallery-get-content-under-heading) "")))
 
 (cl-defstruct org-gallery-gallery
   "A gallery."
